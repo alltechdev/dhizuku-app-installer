@@ -17,15 +17,48 @@ import java.io.OutputStream;
  */
 public class DhizukuInstallService extends IDhizukuInstallService.Stub {
 
-    private Context context;
+    /**
+     * Default constructor required by Dhizuku.
+     * Dhizuku instantiates this service using reflection.
+     */
+    public DhizukuInstallService() {
+    }
 
+    /**
+     * Constructor that accepts a Context (for potential future use).
+     */
     public DhizukuInstallService(Context context) {
-        this.context = context;
+    }
+
+    /**
+     * Get the context from the current process using reflection.
+     * This works because the UserService runs in Dhizuku's process which has an Application context.
+     */
+    private Context getContext() {
+        try {
+            // Get context via ActivityThread.currentApplication()
+            Class<?> activityThreadClass = Class.forName("android.app.ActivityThread");
+            java.lang.reflect.Method currentApplicationMethod = activityThreadClass.getMethod("currentApplication");
+            return (Context) currentApplicationMethod.invoke(null);
+        } catch (Exception e) {
+            try {
+                // Fallback: try AppGlobals.getInitialApplication()
+                Class<?> appGlobalsClass = Class.forName("android.app.AppGlobals");
+                java.lang.reflect.Method getInitialApplicationMethod = appGlobalsClass.getMethod("getInitialApplication");
+                return (Context) getInitialApplicationMethod.invoke(null);
+            } catch (Exception e2) {
+                return null;
+            }
+        }
     }
 
     @Override
     public int createInstallSession() throws RemoteException {
         try {
+            Context context = getContext();
+            if (context == null) {
+                throw new RemoteException("Dhizuku context not available");
+            }
             PackageInstaller installer = context.getPackageManager().getPackageInstaller();
             PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(
                     PackageInstaller.SessionParams.MODE_FULL_INSTALL);
@@ -39,6 +72,10 @@ public class DhizukuInstallService extends IDhizukuInstallService.Stub {
     public void writeToSession(int sessionId, String name, ParcelFileDescriptor pfd) throws RemoteException {
         PackageInstaller.Session session = null;
         try {
+            Context context = getContext();
+            if (context == null) {
+                throw new RemoteException("Dhizuku context not available");
+            }
             PackageInstaller installer = context.getPackageManager().getPackageInstaller();
             session = installer.openSession(sessionId);
 
@@ -63,6 +100,10 @@ public class DhizukuInstallService extends IDhizukuInstallService.Stub {
     public void commitSession(int sessionId) throws RemoteException {
         PackageInstaller.Session session = null;
         try {
+            Context context = getContext();
+            if (context == null) {
+                throw new RemoteException("Dhizuku context not available");
+            }
             PackageInstaller installer = context.getPackageManager().getPackageInstaller();
             session = installer.openSession(sessionId);
 
@@ -85,6 +126,8 @@ public class DhizukuInstallService extends IDhizukuInstallService.Stub {
     @Override
     public void abandonSession(int sessionId) throws RemoteException {
         try {
+            Context context = getContext();
+            if (context == null) return;
             PackageInstaller installer = context.getPackageManager().getPackageInstaller();
             installer.abandonSession(sessionId);
         } catch (Exception e) {
