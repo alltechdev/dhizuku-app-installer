@@ -1,8 +1,8 @@
 # Device Owner App
 
-A utility application designed for **Sonim XP5800** and **XP3800** devices (Android 8.1) to facilitate local app installation without constant ADB connection.
+A utility application for Android devices with restricted installation policies. Enables local APK/XAPK installation without constant ADB connection.
 
-These devices often restrict app installation, allowing only ADB or Device Owner/Admin based installations. This app acts as a Device Owner/Admin to bypass these restrictions and allow users to install APK and XAPK files directly from the device.
+Many enterprise or locked-down devices restrict app installation, allowing only ADB or Device Owner/Admin based installations. This app acts as a Device Owner/Admin to bypass these restrictions and allow users to install APK and XAPK files directly from the device.
 
 ## Features
 
